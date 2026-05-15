@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Древо рода Маргошвили</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Оффлайн архив семьи</p>
+      <h1>Древо рода Маргошвили</h1>
+      <p class="subtitle">сохраняя память поколений</p>
+    </div>
+    <div class="topbar__actions">
+      <button class="button button--small button--ghost" id="themeButton" type="button">Тёмная</button>
+      <button class="button button--small" id="authButton" type="button">Войти</button>
+    </div>
+  </header>
+
+  <button class="panel-tab" id="openPanelButton" type="button" hidden>Человек</button>
+  <button class="panel-tab panel-tab--files" id="openFilesPanelButton" type="button" hidden>Файлы</button>
+
+  <main class="layout">
+    <div class="sidebar">
+      <section class="panel panel--form" aria-labelledby="formTitle">
+      <div class="panel__header">
+        <h2 id="formTitle">Человек</h2>
+        <div class="panel__header-actions">
+          <button class="button button--small button--ghost" id="togglePanelButton" type="button">Скрыть</button>
+          <button class="button button--small button--ghost" id="clearFormButton" type="button">Очистить</button>
+        </div>
+      </div>
+
+      <form id="personForm" class="person-form">
+        <input type="hidden" id="personId">
+
+        <label>
+          Имя и фамилия
+          <input id="fullName" type="text" placeholder="Например: Иван Петров" required>
+        </label>
+
+        <div class="two-col">
+          <label>
+            Год рождения
+            <input id="birthYear" type="number" min="1" max="2200" placeholder="1950">
+          </label>
+          <label>
+            Год смерти
+            <input id="deathYear" type="number" min="1" max="2200" placeholder="если есть">
+          </label>
+        </div>
+
+        <label>
+          Пол
+          <select id="gender">
+            <option value="">Не указан</option>
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
+          </select>
+        </label>
+
+        <label>
+          Жив / умер
+          <select id="lifeStatus">
+            <option value="alive">Жив</option>
+            <option value="deceased">Умер</option>
+          </select>
+        </label>
+
+        <div class="relation-box">
+          <div class="two-col">
+            <label>
+              Тип связи
+              <select id="relationType">
+                <option value="">Не выбрано</option>
+                <option value="father">Отец</option>
+                <option value="mother">Мать</option>
+                <option value="husband">Муж</option>
+                <option value="wife">Жена</option>
+                <option value="son">Сын</option>
+                <option value="daughter">Дочь</option>
+                <option value="grandfather">Дедушка</option>
+                <option value="grandmother">Бабушка</option>
+              </select>
+            </label>
+            <label>
+              Человек
+              <select id="relationPerson"></select>
+            </label>
+          </div>
+        </div>
+
+        <div class="relation-summary" id="relationSummary">
+          Выберите человека на дереве, чтобы увидеть его связи.
+        </div>
+
+        <label>
+          Заметки
+          <textarea id="notes" rows="4" placeholder="Место рождения, важные даты, семейные истории"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button class="button" type="submit">Сохранить</button>
+          <button class="button button--danger" id="deleteButton" type="button" hidden>Удалить</button>
+        </div>
+      </form>
+      </section>
+
+      <section class="panel panel--files" aria-labelledby="filesTitle">
+        <div class="panel__header">
+          <h2 id="filesTitle">Файлы</h2>
+          <button class="button button--small button--ghost" id="toggleFilesPanelButton" type="button">Скрыть</button>
+        </div>
+
+        <div class="files-actions">
+          <button class="button button--ghost" id="exportButton" type="button">Сохранить файл</button>
+          <label class="button button--ghost" for="importFile">Загрузить файл</label>
+          <input id="importFile" class="visually-hidden" type="file" accept="application/json,.json">
+        </div>
+      </section>
+    </div>
+
+    <section class="workspace" aria-labelledby="treeTitle">
+      <div class="workspace__header">
+        <div>
+          <h2 id="treeTitle">Дерево</h2>
+          <p id="statusLine">Добавьте первого человека, чтобы начать.</p>
+        </div>
+        <div class="workspace__tools">
+          <div class="search">
+            <input id="searchInput" type="search" placeholder="Поиск по имени">
+          </div>
+          <button class="button button--small button--ghost" id="fitButton" type="button">Вид</button>
+          <button class="button button--small button--ghost" id="zoomOutButton" type="button">-</button>
+          <span class="zoom-value" id="zoomValue">100%</span>
+          <button class="button button--small button--ghost" id="zoomInButton" type="button">+</button>
+        </div>
+      </div>
+
+      <div id="treeCanvas" class="tree-canvas" aria-live="polite">
+        <div class="generation-label-layer" id="generationLabelLayer" aria-hidden="true"></div>
+        <div class="map-position" id="mapPosition">X 0 · Y 0 · 100%</div>
+        <div class="empty-state">Добавьте первого человека, чтобы начать.</div>
+      </div>
+    </section>
+  </main>
+
+  <template id="personCardTemplate">
+    <article class="person-card">
+      <button class="person-card__button" type="button">
+        <span class="person-card__avatar" aria-hidden="true"></span>
+        <span class="person-card__name"></span>
+        <span class="person-card__years"></span>
+        <span class="person-card__notes"></span>
+      </button>
+    </article>
+  </template>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

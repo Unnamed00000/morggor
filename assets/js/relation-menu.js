@@ -201,7 +201,7 @@
 
     if (action.kind === "child") {
       const parents = [target.id];
-      const secondParent = chooseSecondParent(target, people);
+      const secondParent = chooseSecondParent(target, people, action);
       if (secondParent) parents.push(secondParent.id);
       newPerson.parents = uniqueValues(parents);
     }
@@ -216,18 +216,69 @@
     if (saved) window.location.reload();
   }
 
-  function chooseSecondParent(target, people) {
-    const partners = getPartners(target, people);
-    if (!partners.length) return null;
-    if (partners.length === 1) return partners[0];
+  function chooseSecondParent(target, people, action) {
+    const relationName = getSecondParentRelationName(target);
+    const childName = action.key === "daughter" ? "дочери" : "сына";
+    const candidates = getSecondParentCandidates(target, people);
 
-    const text = partners
+    if (!candidates.length) {
+      const newName = window.prompt(`Укажите ${relationName} для ${childName}. Если этого человека ещё нет, напишите имя и фамилию. Можно оставить пустым.`);
+      return newName?.trim() ? createSecondParent(newName.trim(), target, people) : null;
+    }
+
+    const text = candidates
       .map((person, index) => `${index + 1}. ${personLabel(person, people)}`)
       .join("\n");
-    const answer = window.prompt(`Выберите второго родителя для ребёнка:\n${text}\n\nНапишите номер или оставьте пустым.`);
+    const answer = window.prompt(
+      `Выберите ${relationName} для ${childName}:\n${text}\n\nНапишите номер. Если нужного человека нет в списке, напишите имя и фамилию. Можно оставить пустым.`,
+      candidates.length === 1 ? "1" : ""
+    );
     if (!answer) return null;
-    const index = Number(answer) - 1;
-    return partners[index] || null;
+    const trimmed = answer.trim();
+    const index = Number(trimmed) - 1;
+    if (Number.isInteger(index) && candidates[index]) return candidates[index];
+    return createSecondParent(trimmed, target, people);
+  }
+
+  function getSecondParentCandidates(target, people) {
+    const expectedGender = getOppositeParentGender(target);
+    const candidates = getPartners(target, people);
+    const candidateIds = new Set(candidates.map((person) => person.id));
+
+    people.forEach((person) => {
+      if (person.id === target.id || candidateIds.has(person.id)) return;
+      if (expectedGender && person.gender !== expectedGender) return;
+      candidates.push(person);
+      candidateIds.add(person.id);
+    });
+
+    return candidates;
+  }
+
+  function getOppositeParentGender(target) {
+    if (target.gender === "male") return "female";
+    if (target.gender === "female") return "male";
+    return "";
+  }
+
+  function getSecondParentRelationName(target) {
+    if (target.gender === "male") return "мать";
+    if (target.gender === "female") return "отца";
+    return "второго родителя";
+  }
+
+  function createSecondParent(fullName, target, people) {
+    const gender = getOppositeParentGender(target);
+    const person = normalizePerson({
+      id: createId(),
+      fullName,
+      gender,
+      lifeStatus: "alive",
+      x: gender === "male" ? Math.max(20, (target.x || 170) - 330) : (target.x || 170) + 330,
+      y: Number.isFinite(target.y) ? target.y : 130,
+    });
+    people.push(person);
+    return person;
   }
 
   function getPartners(target, people) {

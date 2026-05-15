@@ -1,2 +1,0 @@
-# morggor
-Rodoslovnoe drevo

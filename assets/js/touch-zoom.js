@@ -27,13 +27,23 @@
   }
 
   function dispatchWheelZoom(anchor, direction) {
-    canvas.dispatchEvent(new WheelEvent("wheel", {
-      bubbles: true,
-      cancelable: true,
-      clientX: anchor.clientX,
-      clientY: anchor.clientY,
-      deltaY: direction > 0 ? -100 : 100,
-    }));
+    const deltaY = direction > 0 ? -100 : 100;
+    let event;
+
+    try {
+      event = new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        clientX: anchor.clientX,
+        clientY: anchor.clientY,
+        deltaY,
+      });
+    } catch (error) {
+      event = document.createEvent("WheelEvent");
+      event.initWheelEvent("wheel", true, true, window, 0, 0, 0, anchor.clientX, anchor.clientY, 0, 0, 0, 0, 0, null, 0, deltaY, 0, 0);
+    }
+
+    canvas.dispatchEvent(event);
   }
 
   function getVisibleTreeAnchor() {
